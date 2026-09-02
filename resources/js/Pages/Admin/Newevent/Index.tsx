@@ -14,6 +14,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Eye, Pencil, Trash2, Plus, Search, Tags } from "lucide-react";
+// ★ NEW — Full Description is now a rich-text field, matching the pattern
+// used elsewhere in the admin (e.g. Admin/HomeCaseStudies/Index.tsx)
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 // ── Types ──────────────────────────────────────────────────
 interface EventType {
@@ -339,7 +343,23 @@ export default function NewseventIndex() {
               <p><strong>Date:</strong> {currentEvent?.date}</p>
               <p><strong>Type:</strong> {activeLang === "ja" ? currentEvent?.eventtype_ja || currentEvent?.eventtype : currentEvent?.eventtype}</p>
               <p><strong>Short:</strong> {activeLang === "ja" ? currentEvent?.short_ja || currentEvent?.short : currentEvent?.short}</p>
-              {currentEvent?.description && <div><strong>Description:</strong><p className="mt-1">{activeLang === "ja" ? currentEvent.description_ja || currentEvent.description : currentEvent.description}</p></div>}
+              {/* ★ CHANGED — description is now HTML (from ReactQuill), so
+                  render it with dangerouslySetInnerHTML + prose instead of
+                  as plain text, matching how rich-text fields are shown
+                  elsewhere on view screens. */}
+              {currentEvent?.description && (
+                <div>
+                  <strong>Description:</strong>
+                  <div
+                    className="mt-1 prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: activeLang === "ja"
+                        ? currentEvent.description_ja || currentEvent.description
+                        : currentEvent.description,
+                    }}
+                  />
+                </div>
+              )}
               {currentEvent?.image && <div><strong>Image:</strong><img src={`/storage/${currentEvent.image}`} className="mt-2 h-32 rounded border object-cover" alt="" /></div>}
               {currentEvent?.pdf && <div><strong>PDF:</strong> <a href={`/storage/${currentEvent.pdf}`} target="_blank" rel="noopener noreferrer" className="text-primary underline">View PDF</a></div>}
             </div>
@@ -395,14 +415,21 @@ export default function NewseventIndex() {
                 />
               </div>
 
-              {/* Description */}
+              {/* ★ CHANGED — Full Description is now a ReactQuill rich-text
+                  editor instead of a plain Textarea, matching the pattern
+                  used for description-style fields elsewhere in the admin
+                  (e.g. Admin/HomeCaseStudies/Index.tsx). Still one field per
+                  language (description / description_ja), switched via the
+                  same EN/JA toggle already on this form. */}
               <div className="space-y-1">
                 <label className="text-sm font-medium">
                   Full Description <span className="text-xs text-primary">({activeLang.toUpperCase()})</span>
                 </label>
-                <Textarea rows={5}
+                <ReactQuill
+                  key={`description-${activeLang}`}
+                  theme="snow"
                   value={activeLang === "en" ? eData.description : eData.description_ja}
-                  onChange={(e) => activeLang === "en" ? setEData("description", e.target.value) : setEData("description_ja", e.target.value)}
+                  onChange={(v) => activeLang === "en" ? setEData("description", v) : setEData("description_ja", v)}
                 />
               </div>
 

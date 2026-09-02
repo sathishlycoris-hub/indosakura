@@ -136,7 +136,7 @@ export default function Show({
                     {getLangValue(lang, "Subject", "課題")}
                   </h3>
                   <div
-                    className="text-sm text-muted-foreground"
+                    className="text-sm text-muted-foreground prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{ __html: getLangValue(lang, caseStudy.benefit, caseStudy.benefit_ja) || "" }}
                   />
                 </div>
@@ -148,7 +148,7 @@ export default function Show({
                     {getLangValue(lang, "Implementation Effect", "導入効果")}
                   </h3>
                   <div
-                    className="text-sm text-muted-foreground"
+                    className="text-sm text-muted-foreground prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{ __html: getLangValue(lang, caseStudy.implementation, caseStudy.implementation_ja) || "" }}
                   />
                 </div>

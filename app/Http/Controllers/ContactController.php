@@ -45,7 +45,7 @@ class ContactController extends Controller
         ]);
 
         // Step 4: Send emails
-        Mail::to('info.india@indosakura.com')->send(new ContactAdminMail($contact));
+        Mail::to('hello@indosakura.com')->send(new ContactAdminMail($contact));
         Mail::to($contact->email)->send(new ContactUserMail($contact));
 
         return redirect()->route('contact.thank_you');

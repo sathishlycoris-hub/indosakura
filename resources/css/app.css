@@ -142,6 +142,26 @@
     text-decoration: underline;
   }
 
+  /* ReactQuill editor — links should match the same primary color they'll
+     render with on the public site (see .prose a above), so what admins see
+     while editing matches the final output. Does not touch other Quill
+     formatting (bold, headers, lists, etc.) or any non-link text color.
+     Quill's own quill.snow.css sets .ql-editor a { color: #06c } (a fixed
+     blue) — the .ql-container qualifier here bumps specificity just enough
+     to win regardless of which stylesheet's <link>/import happens to be
+     injected last, instead of relying on source order. */
+  .ql-container .ql-editor a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+  }
+
+  /* Quill's built-in "edit/remove link" tooltip that pops up when clicking
+     an existing link — restyle its own link-preview text to match, without
+     touching the tooltip's inputs/buttons or link click/edit functionality. */
+  .ql-tooltip a {
+    color: hsl(var(--primary));
+  }
+
   .hero-gradient {
     background: #d83377;
   }
