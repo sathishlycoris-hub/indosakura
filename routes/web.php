@@ -125,23 +125,49 @@ Route::middleware('auth')->group(function () {
 // Route::get('/blogs/4', fn() => Inertia::render('Blogs/Blog4'));
 // Route::get('/blogs/5', fn() => Inertia::render('Blogs/Blog5'));
 
-Route::post('/set-language', function (\Illuminate\Http\Request $request) {
+/*
+ * ★ REWRITTEN — language switching is now domain-based (see SetLocale
+ * middleware): en = indosakura.com, ja = indosakura.co.jp. Clicking EN/JA in
+ * the header no longer POSTs to flip a session flag — it navigates here,
+ * which 302-redirects to the SAME path + query string on the OTHER domain.
+ * This has to be a real HTTP redirect (not an Inertia visit) since it
+ * crosses origins, which the browser/Inertia can't do via XHR.
+ *
+ * The current path is passed explicitly as ?path=... by the frontend
+ * (window.location.pathname + search) rather than relying on the Referer
+ * header, since Referer can be stripped by the browser/extensions and isn't
+ * guaranteed to be present.
+ */
+Route::get('/switch-language/{lang}', function (string $lang, \Illuminate\Http\Request $request) {
+    $lang = $lang === 'ja' ? 'ja' : 'en';
 
-    // .co.jp is English-only and locked — ignore attempts to switch, even if
-    // someone posts directly to this endpoint (the toggle UI is hidden there,
-    // but this is the server-side guarantee).
-    if ($request->attributes->get('langLocked', false)) {
-        return redirect()->back();
+    $currentHost = strtolower($request->getHost());
+    $isProdDomain = str_ends_with($currentHost, '.com') || str_ends_with($currentHost, '.co.jp');
+
+    // Preserve the current path + query string. Only accept a same-site
+    // relative path from the ?path= param — never an absolute/external URL,
+    // to avoid this becoming an open redirect.
+    $path = (string) $request->query('path', '/');
+    if (!str_starts_with($path, '/') || str_starts_with($path, '//')) {
+        $path = '/';
     }
 
-    $lang = $request->lang === 'ja' ? 'ja' : 'en';
+    // Local/staging (no .com or .co.jp host) — there's nowhere real to
+    // cross-domain redirect to, so just flip the session locale in place,
+    // same as the old toggle behavior, and stay on the current host.
+    if (!$isProdDomain) {
+        session(['lang' => $lang]);
+        return redirect()->to($path);
+    }
 
-    session(['lang' => $lang]);
+    $targetHost = $lang === 'ja'
+        ? config('services.indosakura.co_jp_domain')
+        : config('services.indosakura.com_domain');
 
-    app()->setLocale($lang);
+    $scheme = $request->isSecure() ? 'https' : 'http';
 
-    return redirect()->back();
-})->name('set.language');
+    return redirect()->to("{$scheme}://{$targetHost}{$path}");
+})->name('switch.language');
 
 /* Contact & Utility */
 Route::get('/contact', fn() => Inertia::render('Contact', [

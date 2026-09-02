@@ -11,19 +11,21 @@ class SetLocale
     /**
      * Handle an incoming request.
      *
-     * Language resolution is domain-based:
+     * Language is now derived from the domain on BOTH sides:
      *
-     *  - Visitors on a .co.jp host always get Japanese, and the language is
-     *    LOCKED — no toggle, no session override. This matches indosakura.co.jp
-     *    being a Japanese-only entry point.
-     *  - Visitors on any other host (indosakura.com, localhost, staging, etc.)
-     *    default to English on first visit, but can switch to Japanese via the
-     *    header toggle (POST /set-language), which is remembered in session
-     *    for the rest of their visit.
+     *  - indosakura.com   → English
+     *  - indosakura.co.jp → Japanese
      *
-     * The resolved "is the switcher allowed" flag is stashed on the request so
-     * HandleInertiaRequests can share it with the frontend as `langLocked`,
-     * letting Header.tsx hide the toggle entirely on .co.jp.
+     * There is no per-domain toggle anymore — switching language means
+     * switching domain (see the /set-language route and Header.tsx, which
+     * now link to the equivalent path on the other domain instead of
+     * POSTing to flip a session flag).
+     *
+     * The only place session comes in: local/staging hosts that match
+     * neither pattern (localhost, a Laragon .test domain, a preview URL)
+     * fall back to whatever locale was last set in session, defaulting to
+     * English on first visit. This keeps local dev working without needing
+     * two separate domains configured.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
@@ -31,21 +33,24 @@ class SetLocale
     {
         $host = strtolower($request->getHost());
         $isJpDomain = str_ends_with($host, '.co.jp');
+        $isComDomain = str_ends_with($host, '.com');
 
         if ($isJpDomain) {
-            // Locked: always Japanese, ignore/clear any stored toggle choice.
-            session(['lang' => 'ja']);
-            app()->setLocale('ja');
+            $lang = 'ja';
+        } elseif ($isComDomain) {
+            $lang = 'en';
         } else {
-            // Default to English on first visit this session; otherwise respect
-            // whatever the visitor last picked via the /set-language toggle.
-            if (!session()->has('lang')) {
-                session(['lang' => 'en']);
-            }
-            app()->setLocale(session('lang', 'en'));
+            // Local/staging fallback — no recognizable production domain.
+            $lang = session('lang', 'en');
         }
 
-        $request->attributes->set('langLocked', $isJpDomain);
+        session(['lang' => $lang]);
+        app()->setLocale($lang);
+
+        // Kept for any code that still reads this — no domain is "locked"
+        // anymore since both now support both languages via the domain
+        // switch link, but nothing currently depends on it being true.
+        $request->attributes->set('langLocked', false);
 
         return $next($request);
     }

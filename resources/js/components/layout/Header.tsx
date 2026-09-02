@@ -1,4 +1,4 @@
-import { Link, usePage, router } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { Globe } from "lucide-react";
 import { useState } from "react";
 // import { useHeaderHeight } from "@/hooks/useHeaderHeight";
@@ -29,18 +29,24 @@ const NAV_DEFAULTS: SiteSettings = {
 }; 
 
 const Header = () => {
-  // 'lang' and 'langLocked' come from SetLocale middleware via HandleInertiaRequests.
-  // langLocked is true on .co.jp (English-only) — the switcher is hidden there.
-  const { url, props } = usePage<{ lang: "en" | "ja"; langLocked?: boolean; siteSettings?: SiteSettings }>();
+  // 'lang' comes from SetLocale middleware via HandleInertiaRequests, derived
+  // from the current domain (.com = en, .co.jp = ja). The switcher is always
+  // shown now — clicking it navigates to the equivalent path on the OTHER
+  // domain (see routes/web.php: GET /switch-language/{lang}).
+  const { url, props } = usePage<{ lang: "en" | "ja"; siteSettings?: SiteSettings }>();
   const lang = props.lang;
-  const langLocked = props.langLocked ?? false;
   const s: SiteSettings = props.siteSettings ?? NAV_DEFAULTS;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const switchLang = (next: "en" | "ja") => {
-    if (langLocked || next === lang) return;
-    router.post("/set-language", { lang: next }, { preserveScroll: true });
+    if (next === lang) return;
+    // This has to be a real browser navigation, not an Inertia visit —
+    // Inertia can't cross origins (indosakura.com <-> indosakura.co.jp).
+    // window.location.pathname + search preserves the current page and any
+    // query string; the server 302s to the same path on the other domain.
+    const currentPath = window.location.pathname + window.location.search;
+    window.location.href = `/switch-language/${next}?path=${encodeURIComponent(currentPath)}`;
   };
 
   // Build nav array from CMS
@@ -74,28 +80,26 @@ const Header = () => {
               {contactLabel}
             </Link>
 
-            {!langLocked && (
-              <div className="flex items-center gap-1 pl-3 border-l border-border" aria-label="Language switcher">
-                <Globe className="w-4 h-4 text-muted-foreground mr-1" />
-                <button
-                  type="button"
-                  onClick={() => switchLang("en")}
-                  className={`px-1.5 transition-colors ${lang === "en" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                  aria-current={lang === "en"}
-                >
-                  EN
-                </button>
-                <span className="text-border">/</span>
-                <button
-                  type="button"
-                  onClick={() => switchLang("ja")}
-                  className={`px-1.5 transition-colors ${lang === "ja" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                  aria-current={lang === "ja"}
-                >
-                  JA
-                </button>
-              </div>
-            )}
+            <div className="flex items-center gap-1 pl-3 border-l border-border" aria-label="Language switcher">
+              <Globe className="w-4 h-4 text-muted-foreground mr-1" />
+              <button
+                type="button"
+                onClick={() => switchLang("en")}
+                className={`px-1.5 transition-colors ${lang === "en" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                aria-current={lang === "en"}
+              >
+                EN
+              </button>
+              <span className="text-border">/</span>
+              <button
+                type="button"
+                onClick={() => switchLang("ja")}
+                className={`px-1.5 transition-colors ${lang === "ja" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                aria-current={lang === "ja"}
+              >
+                JA
+              </button>
+            </div>
           </div>
           <div className="w-72 border-b border-border mt-1" />
         </div>
@@ -156,27 +160,25 @@ const Header = () => {
                   {contactLabel}
                 </Link>
 
-                {!langLocked && (
-                  <div className="flex items-center gap-2 font-semibold" aria-label="Language switcher">
-                    <button
-                      type="button"
-                      onClick={() => switchLang("en")}
-                      className={lang === "en" ? "text-primary" : "text-foreground"}
-                      aria-current={lang === "en"}
-                    >
-                      EN
-                    </button>
-                    <span className="text-border">/</span>
-                    <button
-                      type="button"
-                      onClick={() => switchLang("ja")}
-                      className={lang === "ja" ? "text-primary" : "text-foreground"}
-                      aria-current={lang === "ja"}
-                    >
-                      JA
-                    </button>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 font-semibold" aria-label="Language switcher">
+                  <button
+                    type="button"
+                    onClick={() => switchLang("en")}
+                    className={lang === "en" ? "text-primary" : "text-foreground"}
+                    aria-current={lang === "en"}
+                  >
+                    EN
+                  </button>
+                  <span className="text-border">/</span>
+                  <button
+                    type="button"
+                    onClick={() => switchLang("ja")}
+                    className={lang === "ja" ? "text-primary" : "text-foreground"}
+                    aria-current={lang === "ja"}
+                  >
+                    JA
+                  </button>
+                </div>
               </div>
             </div>
           </nav>
