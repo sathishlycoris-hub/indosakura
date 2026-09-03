@@ -152,6 +152,10 @@ Route::get('/switch-language/{lang}', function (string $lang, \Illuminate\Http\R
         $path = '/';
     }
 
+    // Mark this session as decided so GeoRedirect never fires again on
+    // THIS domain for the rest of the session.
+    session(['lang_decided' => true]);
+
     // Local/staging (no .com or .co.jp host) — there's nowhere real to
     // cross-domain redirect to, so just flip the session locale in place,
     // same as the old toggle behavior, and stay on the current host.
@@ -166,7 +170,22 @@ Route::get('/switch-language/{lang}', function (string $lang, \Illuminate\Http\R
 
     $scheme = $request->isSecure() ? 'https' : 'http';
 
-    return redirect()->to("{$scheme}://{$targetHost}{$path}");
+    // ★ IMPORTANT — .com and .co.jp are separate domains, so the session
+    // cookie set just above does NOT carry over to the destination domain
+    // (session cookies are host-scoped). Without this, GeoRedirect would
+    // see a "fresh" session on the new domain and could immediately
+    // redirect the visitor right back based on their IP, silently
+    // overriding the choice they just made. A short-lived, signed
+    // one-time query param bridges that gap: GeoRedirect verifies it and
+    // marks its OWN domain's session as decided before continuing.
+    $bounceToken = encrypt([
+        'decided' => true,
+        'exp'     => now()->addSeconds(30)->timestamp,
+    ]);
+
+    $glue = str_contains($path, '?') ? '&' : '?';
+
+    return redirect()->to("{$scheme}://{$targetHost}{$path}{$glue}_ld=" . urlencode($bounceToken));
 })->name('switch.language');
 
 /* Contact & Utility */

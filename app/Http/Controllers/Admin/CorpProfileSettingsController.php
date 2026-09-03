@@ -45,7 +45,7 @@ class CorpProfileSettingsController extends Controller
         ]);
     }
 
-    public function index()
+    public function index() 
     {
         return Inertia::render('Admin/CorpProfile/Index', [
             'settings' => $this->getSettings(),

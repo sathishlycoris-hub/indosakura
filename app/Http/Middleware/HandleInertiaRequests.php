@@ -50,6 +50,18 @@ class HandleInertiaRequests extends Middleware
             // to hide the EN/JA switcher entirely. Set by SetLocale middleware.
             'langLocked' => fn () => (bool) $request->attributes->get('langLocked', false),
 
+            // ── NEW — shared globally so PageSeo can build hreflang and
+            // canonical tags without every individual page needing to pass
+            // domain info through manually. altHref is the CURRENT path on
+            // the OTHER language's domain (same path, different host) —
+            // exactly what an hreflang alternate link needs.
+            'seoDomains' => fn () => [
+                'com_domain'   => config('services.indosakura.com_domain'),
+                'co_jp_domain' => config('services.indosakura.co_jp_domain'),
+                'current_host' => strtolower($request->getHost()),
+                'current_path' => $request->getRequestUri(),
+            ],
+
         ];
     }
 }

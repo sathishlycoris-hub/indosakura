@@ -301,7 +301,7 @@ export default function CorpProfileIndex() {
       {activeTab === "locations" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <LocGroup num={1} label="Office 1 (Tokyo Headquarters)" lang={activeLang} data={data} setData={set} />
-          <LocGroup num={2} label="Office 2 (Osaka Sales Office)" lang={activeLang} data={data} setData={set} />
+          <LocGroup num={2} label="Office 2 (Los Angeles Sales Office)" lang={activeLang} data={data} setData={set} />
           <LocGroup num={3} label="Office 3 (India Dev Center)" lang={activeLang} data={data} setData={set} />
           <LocGroup num={4} label="Office 4 (U.S. Sales Office)" lang={activeLang} data={data} setData={set} />
           <LocGroup num={5} label="Office 5 (Dubai Sales Office)" lang={activeLang} data={data} setData={set} />
