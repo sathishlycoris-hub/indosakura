@@ -65,7 +65,7 @@ class HomeController extends Controller
 
         $updates = $newsItems->concat($blogItems)
             ->sortByDesc('date')
-            ->take(10)
+            ->take(5)
             ->values();
 
         return Inertia::render('Index', [

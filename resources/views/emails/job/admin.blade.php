@@ -17,7 +17,7 @@
     <tr><td>Email</td><td>{{ $application->email }}</td></tr>
     <tr><td>Phone</td><td>{{ $application->phone }}</td></tr>
     <tr><td>Cover Letter</td><td>{{ $application->cover_letter ?? '-' }}</td></tr>
-    <tr><td>Resume</td><td><a href="{{ asset('storage/' . $application->resume) }}">Download Resume</a></td></tr>
+    <!-- <tr><td>Resume</td><td>{{ $application->resume ? ($application->resume_original_name ?: basename($application->resume)) . ' (see attachment)' : '-' }}</td></tr> -->
     <tr><td>Applied At</td><td>{{ $application->created_at->format('Y-m-d H:i') }}</td></tr>
   </table>
 </div>

@@ -39,6 +39,7 @@ class JobApplicationController extends Controller
         ]);
 
         // Step 3: Store resume
+        $data['resume_original_name'] = $request->file('resume')->getClientOriginalName();
         $data['resume'] = $request->file('resume')->store('job-applications', 'public');
 
         // Step 4: Save to DB
@@ -46,7 +47,7 @@ class JobApplicationController extends Controller
         $application->load('job');
 
         // Step 5: Send emails
-        Mail::to('info.india@indosakura.com')->send(new JobApplicationAdminMail($application));
+        Mail::to('info@mail.indosakura.com')->send(new JobApplicationAdminMail($application));
         Mail::to($application->email)->send(new JobApplicationUserMail($application));
 
         return back()->with('success', 'Application submitted successfully.');
