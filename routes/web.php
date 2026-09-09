@@ -126,12 +126,11 @@ Route::middleware('auth')->group(function () {
 // Route::get('/blogs/5', fn() => Inertia::render('Blogs/Blog5'));
 
 /*
- * ★ REWRITTEN — language switching is now domain-based (see SetLocale
- * middleware): en = indosakura.com, ja = indosakura.co.jp. Clicking EN/JA in
- * the header no longer POSTs to flip a session flag — it navigates here,
- * which 302-redirects to the SAME path + query string on the OTHER domain.
- * This has to be a real HTTP redirect (not an Inertia visit) since it
- * crosses origins, which the browser/Inertia can't do via XHR.
+ * ★ SINGLE-DOMAIN VERSION — indosakura.co.jp has been retired. Language
+ * switching is now purely a session value on indosakura.com (see SetLocale
+ * middleware). Clicking EN/JA in the header hits this route, which flips
+ * the session language and redirects back to the same path — no
+ * cross-domain hop needed anymore.
  *
  * The current path is passed explicitly as ?path=... by the frontend
  * (window.location.pathname + search) rather than relying on the Referer
@@ -141,9 +140,6 @@ Route::middleware('auth')->group(function () {
 Route::get('/switch-language/{lang}', function (string $lang, \Illuminate\Http\Request $request) {
     $lang = $lang === 'ja' ? 'ja' : 'en';
 
-    $currentHost = strtolower($request->getHost());
-    $isProdDomain = str_ends_with($currentHost, '.com') || str_ends_with($currentHost, '.co.jp');
-
     // Preserve the current path + query string. Only accept a same-site
     // relative path from the ?path= param — never an absolute/external URL,
     // to avoid this becoming an open redirect.
@@ -152,40 +148,12 @@ Route::get('/switch-language/{lang}', function (string $lang, \Illuminate\Http\R
         $path = '/';
     }
 
-    // Mark this session as decided so GeoRedirect never fires again on
-    // THIS domain for the rest of the session.
+    // Mark this session as decided so GeoRedirect never overrides it again
+    // for the rest of the session, and set the chosen language.
     session(['lang_decided' => true]);
+    session(['lang' => $lang]);
 
-    // Local/staging (no .com or .co.jp host) — there's nowhere real to
-    // cross-domain redirect to, so just flip the session locale in place,
-    // same as the old toggle behavior, and stay on the current host.
-    if (!$isProdDomain) {
-        session(['lang' => $lang]);
-        return redirect()->to($path);
-    }
-
-    $targetHost = $lang === 'ja'
-        ? config('services.indosakura.co_jp_domain')
-        : config('services.indosakura.com_domain');
-
-    $scheme = $request->isSecure() ? 'https' : 'http';
-
-    // ★ IMPORTANT — .com and .co.jp are separate domains, so the session
-    // cookie set just above does NOT carry over to the destination domain
-    // (session cookies are host-scoped). Without this, GeoRedirect would
-    // see a "fresh" session on the new domain and could immediately
-    // redirect the visitor right back based on their IP, silently
-    // overriding the choice they just made. A short-lived, signed
-    // one-time query param bridges that gap: GeoRedirect verifies it and
-    // marks its OWN domain's session as decided before continuing.
-    $bounceToken = encrypt([
-        'decided' => true,
-        'exp'     => now()->addSeconds(30)->timestamp,
-    ]);
-
-    $glue = str_contains($path, '?') ? '&' : '?';
-
-    return redirect()->to("{$scheme}://{$targetHost}{$path}{$glue}_ld=" . urlencode($bounceToken));
+    return redirect()->to($path);
 })->name('switch.language');
 
 /* Contact & Utility */

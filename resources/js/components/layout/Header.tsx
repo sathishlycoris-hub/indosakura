@@ -29,10 +29,11 @@ const NAV_DEFAULTS: SiteSettings = {
 }; 
 
 const Header = () => {
-  // 'lang' comes from SetLocale middleware via HandleInertiaRequests, derived
-  // from the current domain (.com = en, .co.jp = ja). The switcher is always
-  // shown now — clicking it navigates to the equivalent path on the OTHER
-  // domain (see routes/web.php: GET /switch-language/{lang}).
+  // 'lang' comes from SetLocale middleware via HandleInertiaRequests — now a
+  // pure session value (single domain, indosakura.co.jp retired). The
+  // switcher is always shown; clicking it hits /switch-language/{lang}
+  // (routes/web.php), which flips the session value and redirects back to
+  // the same path.
   const { url, props } = usePage<{ lang: "en" | "ja"; siteSettings?: SiteSettings }>();
   const lang = props.lang;
   const s: SiteSettings = props.siteSettings ?? NAV_DEFAULTS;
@@ -41,10 +42,10 @@ const Header = () => {
 
   const switchLang = (next: "en" | "ja") => {
     if (next === lang) return;
-    // This has to be a real browser navigation, not an Inertia visit —
-    // Inertia can't cross origins (indosakura.com <-> indosakura.co.jp).
+    // A full browser navigation (not an Inertia visit) keeps this simple and
+    // guarantees the new session language is reflected on the reloaded page.
     // window.location.pathname + search preserves the current page and any
-    // query string; the server 302s to the same path on the other domain.
+    // query string; the server redirects back to the same path.
     const currentPath = window.location.pathname + window.location.search;
     window.location.href = `/switch-language/${next}?path=${encodeURIComponent(currentPath)}`;
   };

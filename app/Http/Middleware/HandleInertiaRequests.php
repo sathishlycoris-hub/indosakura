@@ -46,18 +46,16 @@ class HandleInertiaRequests extends Middleware
             // is actually built — by then SetLocale has already run.
             'lang' => fn () => app()->getLocale(),
 
-            // ── True on .co.jp (English-only, no toggle). Header.tsx uses this
-            // to hide the EN/JA switcher entirely. Set by SetLocale middleware.
+            // ── Single domain now — always false, kept only for any code
+            // that still reads this prop. Header.tsx's EN/JA switcher is
+            // always shown. Set by SetLocale middleware.
             'langLocked' => fn () => (bool) $request->attributes->get('langLocked', false),
 
-            // ── NEW — shared globally so PageSeo can build hreflang and
-            // canonical tags without every individual page needing to pass
-            // domain info through manually. altHref is the CURRENT path on
-            // the OTHER language's domain (same path, different host) —
-            // exactly what an hreflang alternate link needs.
+            // ── Single domain now (indosakura.co.jp retired) — shared so
+            // PageSeo can build a canonical URL without every page needing
+            // to pass domain info through manually.
             'seoDomains' => fn () => [
                 'com_domain'   => config('services.indosakura.com_domain'),
-                'co_jp_domain' => config('services.indosakura.co_jp_domain'),
                 'current_host' => strtolower($request->getHost()),
                 'current_path' => $request->getRequestUri(),
             ],

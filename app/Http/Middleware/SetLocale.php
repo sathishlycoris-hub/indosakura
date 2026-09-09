@@ -11,45 +11,31 @@ class SetLocale
     /**
      * Handle an incoming request.
      *
-     * Language is now derived from the domain on BOTH sides:
+     * ★ SINGLE-DOMAIN VERSION — indosakura.co.jp has been retired. Language
+     * is no longer derived from the host; everything lives on
+     * indosakura.com and language is purely a session value:
      *
-     *  - indosakura.com   → English
-     *  - indosakura.co.jp → Japanese
+     *  - Set once per session by GeoRedirect (IP-based default, 'en' unless
+     *    the visitor looks up as Japan).
+     *  - Overridden any time by the visitor via the EN/JA button, which hits
+     *    /switch-language/{lang} (see routes/web.php) and updates the same
+     *    session value.
      *
-     * There is no per-domain toggle anymore — switching language means
-     * switching domain (see the /set-language route and Header.tsx, which
-     * now link to the equivalent path on the other domain instead of
-     * POSTing to flip a session flag).
-     *
-     * The only place session comes in: local/staging hosts that match
-     * neither pattern (localhost, a Laragon .test domain, a preview URL)
-     * fall back to whatever locale was last set in session, defaulting to
-     * English on first visit. This keeps local dev working without needing
-     * two separate domains configured.
+     * Defaults to English if nothing has set it yet (e.g. non-GET/XHR first
+     * request, before GeoRedirect has had a chance to run).
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $host = strtolower($request->getHost());
-        $isJpDomain = str_ends_with($host, '.co.jp');
-        $isComDomain = str_ends_with($host, '.com');
-
-        if ($isJpDomain) {
-            $lang = 'ja';
-        } elseif ($isComDomain) {
-            $lang = 'en';
-        } else {
-            // Local/staging fallback — no recognizable production domain.
-            $lang = session('lang', 'en');
-        }
+        $lang = session('lang', 'en');
+        $lang = $lang === 'ja' ? 'ja' : 'en';
 
         session(['lang' => $lang]);
         app()->setLocale($lang);
 
-        // Kept for any code that still reads this — no domain is "locked"
-        // anymore since both now support both languages via the domain
-        // switch link, but nothing currently depends on it being true.
+        // Kept for any code that still reads this — there's only one domain
+        // now, so the language toggle is always available; never locked.
         $request->attributes->set('langLocked', false);
 
         return $next($request);

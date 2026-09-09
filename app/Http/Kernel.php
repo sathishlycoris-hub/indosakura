@@ -33,10 +33,8 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
-            // ★ NEW — first-request-of-session geo redirect (Japan → .co.jp,
-            // else → .com). Must run after StartSession (needs session()) but
-            // as early as possible otherwise, so a redirect short-circuits
-            // before CSRF/Inertia/locale work happens on the wrong domain.
+            // ★ Single-domain: first-request-of-session geo check sets the
+            // session language (ja for Japan, else en) — no domain redirect.
             \App\Http\Middleware\GeoRedirect::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
