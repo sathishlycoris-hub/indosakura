@@ -12,6 +12,8 @@ interface SiteSettings {
   contact_phone: string;
   contact_email: string;
   contact_address: string; contact_address_ja: string;
+  contact_ind_phone: string; contact_ind_phone_ja: string;
+  contact_ind_address: string; contact_ind_address_ja: string;
   contact_tagline_en: string; contact_tagline_ja: string;
   contact_heading_en: string; contact_heading_ja: string;
   contact_subtext_en: string; contact_subtext_ja: string;
@@ -30,6 +32,10 @@ const CONTACT_DEFAULTS: SiteSettings = {
   contact_email: "info.japan@indosakura.com",
   contact_address: "5-30-13 Toyo, Edogawa-ku, Tokyo",
   contact_address_ja: "東京都江戸川区東陽5-30-13",
+  contact_ind_phone: "",
+  contact_ind_phone_ja: "",
+  contact_ind_address: "",
+  contact_ind_address_ja: "",
   contact_tagline_en: "Trusted Indo-Sakura Partner",
   contact_tagline_ja: "信頼のインドサクラパートナー",
   contact_heading_en: "Let's build something together.",
@@ -162,18 +168,36 @@ const Contact = () => {
                     <div className="bg-white/10 p-3 rounded-xl"><Phone className="w-5 h-5" /></div>
                     <p>{cs.contact_phone}</p>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="bg-white/10 p-3 rounded-xl"><Mail className="w-5 h-5" /></div>
-                    <p>{cs.contact_email}</p>
-                  </div>
+                 
                   <div className="flex items-center gap-4">
                     <div className="bg-white/10 p-3 rounded-xl"><MapPin className="w-5 h-5" /></div>
                     <p>{t(cs.contact_address, cs.contact_address_ja)}</p>
                   </div>
-                  <div className="pt-8 border-t border-white/10">
+                  {(t(cs.contact_ind_phone, cs.contact_ind_phone_ja) || t(cs.contact_ind_address, cs.contact_ind_address_ja)) && (
+                    <div className="pt-6 border-t border-white/10 space-y-6">
+                      <p className="text-sm font-semibold opacity-90">{t("India Office", "インドオフィス")}</p>
+                      {t(cs.contact_ind_phone, cs.contact_ind_phone_ja) && (
+                        <div className="flex items-center gap-4">
+                          <div className="bg-white/10 p-3 rounded-xl"><Phone className="w-5 h-5" /></div>
+                          <p>{t(cs.contact_ind_phone, cs.contact_ind_phone_ja)}</p>
+                        </div>
+                      )}
+                      {t(cs.contact_ind_address, cs.contact_ind_address_ja) && (
+                        <div className="flex items-center gap-4">
+                          <div className="bg-white/10 p-3 rounded-xl"><MapPin className="w-5 h-5" /></div>
+                          <p>{t(cs.contact_ind_address, cs.contact_ind_address_ja)}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {/* <div className="pt-8 border-t border-white/10">
                     <p className="text-sm opacity-80 font-medium tracking-wide text-center lg:text-left">
                       {t(cs.contact_tagline_en, cs.contact_tagline_ja)}
                     </p>
+                  </div> */}
+                   <div className="pt-8 border-t border-white/10 flex items-center gap-4">
+                    <div className="bg-white/10 p-3 rounded-xl"><Mail className="w-5 h-5" /></div>
+                    <p>{cs.contact_email}</p>
                   </div>
                 </div>
               </div>

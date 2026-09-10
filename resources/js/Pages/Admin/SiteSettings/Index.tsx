@@ -249,6 +249,11 @@ export default function SiteSettingsIndex() {
             <Field label="Address" value={data[l === "en" ? "contact_address" : "contact_address_ja"] ?? ""} onChange={(v) => set(l === "en" ? "contact_address" : "contact_address_ja", v)} lang={l} />
             <Field label="Tagline" value={data[l === "en" ? "contact_tagline_en" : "contact_tagline_ja"] ?? ""} onChange={(v) => set(l === "en" ? "contact_tagline_en" : "contact_tagline_ja", v)} lang={l} />
           </div>
+          <div className="space-y-3">
+            <h3 className="font-semibold text-base border-b pb-2">India Office</h3>
+            <Field label="Phone" value={data[l === "en" ? "contact_ind_phone" : "contact_ind_phone_ja"] ?? ""} onChange={(v) => set(l === "en" ? "contact_ind_phone" : "contact_ind_phone_ja", v)} lang={l} />
+            <Field label="Address" value={data[l === "en" ? "contact_ind_address" : "contact_ind_address_ja"] ?? ""} onChange={(v) => set(l === "en" ? "contact_ind_address" : "contact_ind_address_ja", v)} lang={l} />
+          </div>
         </div>
       )}
 
