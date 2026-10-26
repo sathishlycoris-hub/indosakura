@@ -18,6 +18,7 @@ import {
   Settings,
   Factory,
   Search,
+  LayoutTemplate,
 } from "lucide-react";
 
 export type SidebarItem = {
@@ -79,6 +80,12 @@ export const sidebarItems: SidebarItem[] = [
         label: "Services",
         icon: Settings,
         href: route("admin.services.index"),
+        role: ["admin"],
+      },
+      {
+        label: "Service Landing",
+        icon: LayoutTemplate,
+        href: route("admin.service_landings.index"),
         role: ["admin"],
       },
       {

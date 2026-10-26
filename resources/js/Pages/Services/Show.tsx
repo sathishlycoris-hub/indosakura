@@ -25,10 +25,11 @@ interface Faq           { id: number; question: string; question_ja?: string; an
 interface Industry      { id: number; title: string; title_ja?: string; description: string; description_ja?: string; }
 
 interface ServiceItemLink {
-  id: number;
+  id: number | string;
   title: string; title_ja?: string;
   description?: string; description_ja?: string;
   slug?: string;
+  url?: string; // set for Service Landing cards → /services/landing/{slug}
 }
 
 interface Service {
@@ -206,7 +207,7 @@ export default function Show({ service, faqs = [], industries = [], serviceItems
                 const cls = "flex flex-col md:flex-row items-start gap-6 p-6 rounded-2xl border border-border bg-card hover:shadow-lg transition-all duration-300 group";
 
                 return item.slug ? (
-                  <a key={item.id} href={`/services/${service.slug}/${item.slug}`}
+                  <a key={item.id} href={item.url ?? `/services/${service.slug}/${item.slug}`}
                     data-aos={i % 2 === 0 ? "fade-right" : "fade-left"} data-aos-delay={i * 50} className={cls}>
                     {inner}
                   </a>

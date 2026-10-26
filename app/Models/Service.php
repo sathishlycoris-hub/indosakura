@@ -119,4 +119,12 @@ class Service extends Model
 {
     return $this->hasMany(ServiceItem::class)->orderBy('sort_order');
 }
+
+    /** Landing pages attached to this service (/services/landing/{slug}). */
+    public function landings(): HasMany
+    {
+        return $this->hasMany(ServiceLanding::class)
+            ->where('is_published', true)
+            ->orderBy('sort_order');
+    }
 }

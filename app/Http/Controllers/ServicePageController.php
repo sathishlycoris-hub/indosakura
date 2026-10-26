@@ -39,7 +39,7 @@ class ServicePageController extends Controller
     public function show(string $slug)
 {
     $service = Service::where('slug', $slug)
-        ->with(['highlights', 'benefits', 'pageFaqs', 'pageIndustries', 'items', 'blogs', 'featuredCaseStudies.solution:id,slug,title,title_ja'])
+        ->with(['highlights', 'benefits', 'pageFaqs', 'pageIndustries', 'items', 'landings', 'blogs', 'featuredCaseStudies.solution:id,slug,title,title_ja'])
         ->firstOrFail();
 
     $lang = app()->getLocale();
@@ -65,7 +65,19 @@ class ServicePageController extends Controller
             'description' => $it->card_description,
             'description_ja' => $it->card_description_ja,
             'slug'        => $it->slug,
-        ]),
+        ])->concat(
+            // Service Landing pages attached to this service — rendered with the
+            // same arrow-cards, but linking to /services/landing/{slug}.
+            $service->landings->map(fn ($ln) => [
+                'id'          => 'landing-' . $ln->id,
+                'title'       => $ln->title,
+                'title_ja'    => $ln->title_ja,
+                'description' => $ln->card_description,
+                'description_ja' => $ln->card_description_ja,
+                'slug'        => $ln->slug,
+                'url'         => $ln->public_url,
+            ])
+        )->values(),
         // ★ NEW — blogs attached to this service, for the "Case Studies"-style
         // card grid at the bottom of Services/Show. Links out to the shared
         // /blogs/{slug} detail page under Insights.

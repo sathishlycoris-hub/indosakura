@@ -60,6 +60,8 @@ use App\Http\Controllers\Admin\HomeCaseStudyController as AdminHomeCaseStudyCont
 use App\Http\Controllers\HomeCaseStudyController;
 use App\Http\Controllers\WhitepaperController;
 use App\Http\Controllers\Admin\WhitepaperController as AdminWhitepaperController;
+use App\Http\Controllers\Admin\ServiceLandingController as AdminServiceLandingController;
+use App\Http\Controllers\ServiceLandingPageController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -282,6 +284,11 @@ Route::get('/solutions/{solutionSlug}/case-studies/{caseSlug}', [CaseStudyContro
 Route::get('/solutions/{slug}', [SolutionPageController::class, 'show'])
     ->name('solutions.show');
 
+// ── Service Landing pages (must stay ABOVE /services/{slug} and /services/{a}/{b}) ──
+Route::get('/services/landing', fn () => redirect('/services'));
+Route::get('/services/landing/{slug}', [ServiceLandingPageController::class, 'show'])
+    ->name('services.landing.show');
+
 Route::get('/services', [ServicePageController::class, 'index'])
     ->name('services.index');
 
@@ -477,6 +484,12 @@ Route::prefix('admin')
             \App\Http\Controllers\Admin\ServiceIndustryController::class,
             'destroy'
         ])->name('service-industries.destroy');
+
+        // Service Landing pages  → public URL /services/landing/{slug}
+        Route::resource('service-landings', AdminServiceLandingController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['service-landings' => 'serviceLanding'])
+            ->names('service_landings');
 
         Route::post('services-page', [ServiceController::class, 'updatePage'])->name('services.updatePage');
         // india desk industries
