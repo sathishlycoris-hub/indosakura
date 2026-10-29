@@ -8,7 +8,7 @@
 //   ...
 //   <PageSeo {...pageSeo} />
 
-import { Head, usePage } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 
 export interface PageSeoProps {
   meta_title?: string | null;
@@ -33,12 +33,6 @@ export default function PageSeo({
   meta_keywords,
   og_image,
 }: PageSeoProps) {
-  const { seoDomains } = usePage<{ seoDomains?: SeoDomains }>().props;
-
-  const canonicalUrl = seoDomains
-    ? `https://${seoDomains.com_domain}${seoDomains.current_path}`
-    : null;
-
   return (
     <Head>
       {/* Primary meta */}
@@ -46,8 +40,7 @@ export default function PageSeo({
       {meta_description && <meta name="description" content={meta_description} />}
       {meta_keywords    && <meta name="keywords" content={meta_keywords} />}
 
-      {/* Canonical — single domain, so this is just the current URL. */}
-      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+      {/* Canonical is rendered server-side in resources/views/app.blade.php */}
 
       {/* Open Graph */}
       {meta_title       && <meta property="og:title"       content={meta_title} />}
