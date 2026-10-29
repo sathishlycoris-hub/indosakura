@@ -104,9 +104,13 @@ const Contact = () => {
     setIsSubmitting(true);
     router.post(route("contact.store"), { ...formData }, {
       onSuccess: () => {
-        (window as any).gtag_report_conversion?.();
-        // Server redirects to /contact/thank-you on success — Inertia follows
-        // it automatically, so no local toast/reset is needed here.
+        // Fires only after the server accepted the inquiry
+        (window as any).dataLayer = (window as any).dataLayer || [];
+        (window as any).dataLayer.push({
+          event: "form_submission_success",
+          form_name: "contact_form",
+          form_status: "success",
+        });
       },
       onError: () => toast({ title: "Submission failed", description: "Something went wrong. Please try again.", variant: "destructive" }),
       onFinish: () => setIsSubmitting(false),
@@ -139,7 +143,7 @@ const Contact = () => {
           {seo?.meta_title ?? (lang === "en" ? "Contact Us | Indo Sakura" : "お問い合わせ | インドサクラ")}
         </title>
         {seo?.meta_description && <meta name="description" content={seo.meta_description} />}
-        {seo?.meta_keywords    && <meta name="keywords"    content={seo.meta_keywords}    />}
+        {seo?.meta_keywords && <meta name="keywords" content={seo.meta_keywords} />}
       </Head>
 
       <div className="min-h-screen bg-slate-50/50 dark:bg-zinc-950">
@@ -168,7 +172,7 @@ const Contact = () => {
                     <div className="bg-white/10 p-3 rounded-xl"><Phone className="w-5 h-5" /></div>
                     <p>{cs.contact_phone}</p>
                   </div>
-                 
+
                   <div className="flex items-center gap-4">
                     <div className="bg-white/10 p-3 rounded-xl"><MapPin className="w-5 h-5" /></div>
                     <p>{t(cs.contact_address, cs.contact_address_ja)}</p>
@@ -195,7 +199,7 @@ const Contact = () => {
                       {t(cs.contact_tagline_en, cs.contact_tagline_ja)}
                     </p>
                   </div> */}
-                   <div className="pt-8 border-t border-white/10 flex items-center gap-4">
+                  <div className="pt-8 border-t border-white/10 flex items-center gap-4">
                     <div className="bg-white/10 p-3 rounded-xl"><Mail className="w-5 h-5" /></div>
                     <p>{cs.contact_email}</p>
                   </div>

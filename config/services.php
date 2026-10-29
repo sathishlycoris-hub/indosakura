@@ -39,7 +39,7 @@ return [
     // only for canonical URL building (e.g. PageSeo); language switching is
     // now session-based, not domain-based (see App\Http\Middleware\SetLocale).
     'indosakura' => [
-        'com_domain' => env('INDOSAKURA_COM_DOMAIN', 'indosakura.com'),
+        'com_domain' => env('INDOSAKURA_COM_DOMAIN', 'www.indosakura.com'),
     ],
 
 ];

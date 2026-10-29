@@ -59,6 +59,13 @@
     @routes
     @viteReactRefresh
     @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
+    @unless (request()->is('admin*'))
+        @php
+            // One canonical per page: https + www, no query string, no trailing slash
+            $canonicalPath = '/' . trim(request()->getPathInfo(), '/');
+        @endphp
+        <link rel="canonical" href="https://{{ config('services.indosakura.com_domain', 'www.indosakura.com') }}{{ $canonicalPath }}">
+    @endunless
     @inertiaHead
 </head>
 

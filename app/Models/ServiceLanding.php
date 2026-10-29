@@ -55,10 +55,10 @@ class ServiceLanding extends Model
         return $this->belongsTo(Service::class);
     }
 
-    /** The URL admins paste anywhere (menus, ads, other pages). */
+    /** The URL admins paste anywhere (menus, ads, other pages) → /services/{slug} */
     public function getPublicUrlAttribute(): string
     {
-        return '/services/landing/' . $this->slug;
+        return '/services/' . $this->slug;
     }
 
     public function getEffectiveMetaTitle(string $lang = 'en'): string

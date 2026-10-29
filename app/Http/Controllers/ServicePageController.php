@@ -38,6 +38,13 @@ class ServicePageController extends Controller
     /* ─── Service detail page ─── */
     public function show(string $slug)
 {
+    // /services/{slug} serves a real Service first; if none has this slug,
+    // it falls back to a published Service Landing page with that slug.
+    if (!Service::where('slug', $slug)->exists()
+        && \App\Models\ServiceLanding::where('slug', $slug)->where('is_published', true)->exists()) {
+        return app(\App\Http\Controllers\ServiceLandingPageController::class)->show($slug);
+    }
+
     $service = Service::where('slug', $slug)
         ->with(['highlights', 'benefits', 'pageFaqs', 'pageIndustries', 'items', 'landings', 'blogs', 'featuredCaseStudies.solution:id,slug,title,title_ja'])
         ->firstOrFail();

@@ -86,6 +86,12 @@ export default function ContactPopup({ open, onClose }: ContactPopupProps) {
     // Note: Ensure the route 'contact.store' exists in your Ziggy/Laravel setup
     router.post(route("contact.store"), formData, {
       onSuccess: () => {
+        (window as any).dataLayer = (window as any).dataLayer || [];
+        (window as any).dataLayer.push({
+          event: "form_submission_success",
+          form_name: "contact_popup",
+          form_status: "success",
+        });
         setSubmitted(true);
         setErrors({});
       },

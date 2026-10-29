@@ -67,6 +67,10 @@ const JSON_KEYS = [
   "process_steps", "portfolio", "engagement_models", "faqs", "section_titles",
 ] as const;
 
+// Live cleanup while the admin types the URL name (keeps a trailing "-" so words can be separated)
+const cleanSlug = (t: string) =>
+  t.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-{2,}/g, "-").replace(/^-+/, "");
+
 const slugify = (t: string) =>
   t.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-").replace(/^-+|-+$/g, "");
 
@@ -103,6 +107,7 @@ export default function Index({
   const [langTab, setLangTab] = useState<"en" | "ja">("en");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState<string | null>(null);
+  const [slugTouched, setSlugTouched] = useState(false); // true once the admin edits the URL name by hand
 
   const { data, setData, reset, processing } = useForm(emptyForm());
 
@@ -122,12 +127,12 @@ export default function Index({
 
   const openAdd = () => {
     reset(); setData(emptyForm());
-    setFormErrors({}); setMode("add"); setCurrent(null); setLangTab("en"); setOpen(true);
+    setFormErrors({}); setSlugTouched(false); setMode("add"); setCurrent(null); setLangTab("en"); setOpen(true);
   };
 
   const openEdit = (l: Landing) => {
     const f = emptyForm();
-    setMode("edit"); setCurrent(l); setLangTab("en"); setFormErrors({});
+    setMode("edit"); setCurrent(l); setLangTab("en"); setFormErrors({}); setSlugTouched(true);
     setData({
       ...f,
       service_id: l.service_id ?? "", is_published: !!l.is_published, sort_order: l.sort_order ?? 0,
@@ -155,7 +160,7 @@ export default function Index({
   };
 
   const handleTitle = (val: string) => {
-    setData(prev => ({ ...prev, title: val, slug: mode === "add" && (prev.slug === "" || prev.slug === slugify(prev.title)) ? slugify(val) : prev.slug }));
+    setData(prev => ({ ...prev, title: val, slug: mode === "add" && !slugTouched ? slugify(val) : prev.slug }));
     if (formErrors.title) setFormErrors(e => ({ ...e, title: "" }));
   };
 
@@ -211,7 +216,7 @@ export default function Index({
         <div>
           <h1 className="text-2xl font-bold">Service Landing Pages</h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Each record is published at <code>/services/landing/&#123;slug&#125;</code>. Copy the link and paste it anywhere.
+            Each record is published at <code>/services/&#123;your-name&#125;</code>. Copy the link and paste it anywhere.
           </p>
         </div>
         <Button onClick={openAdd}><Plus className="w-4 h-4 mr-2" /> Add Landing Page</Button>
@@ -236,13 +241,35 @@ export default function Index({
             {/* Link box — the URL to paste */}
             <div className="border rounded-xl p-4 bg-primary/5 space-y-2">
               <p className="font-semibold text-sm">Landing page link</p>
+              <p className="text-xs text-muted-foreground">
+                Type your own page name after <code>/services/</code> (it must be different from your service page names). Lowercase letters, numbers and hyphens only.
+              </p>
               <div className="flex items-center gap-2">
-                <Input readOnly value={data.slug ? fullUrl(data.slug) : `${baseUrl}/…`} className="bg-white text-xs" />
+                <div className={`flex flex-1 items-center bg-white border rounded-md overflow-hidden ${formErrors.slug ? "border-destructive" : ""}`}>
+                  <span className="px-3 py-2 text-xs text-muted-foreground bg-muted/40 border-r whitespace-nowrap select-none">
+                    {baseUrl}/
+                  </span>
+                  <input
+                    value={data.slug}
+                    placeholder="your-page-name"
+                    onChange={e => { setSlugTouched(true); setData("slug", cleanSlug(e.target.value)); if (formErrors.slug) setFormErrors(er => ({ ...er, slug: "" })); }}
+                    onBlur={() => setData("slug", data.slug.replace(/-+$/, ""))}
+                    className="flex-1 min-w-0 px-3 py-2 text-sm outline-none bg-transparent"
+                  />
+                </div>
                 <Button type="button" variant="outline" disabled={!data.slug}
                   onClick={() => copy(fullUrl(data.slug), "form")}>
                   {copied === "form" ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
+              {formErrors.slug && (
+                <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {formErrors.slug}</p>
+              )}
+              {mode === "edit" && current && data.slug !== current.slug && (
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                  Changing the name will break the old link ({fullUrl(current.slug)}). Update it anywhere you pasted it.
+                </p>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
                 <Field label="Show on service page" hint="Optional. Adds a card to that service's page.">
                   <select value={data.service_id} onChange={e => setData("service_id", e.target.value)}
@@ -270,12 +297,6 @@ export default function Index({
               <TabsContent value="en" className="space-y-4">
                 <Field label="Title (EN) *" error={formErrors.title}>
                   <Input value={data.title} onChange={e => handleTitle(e.target.value)} className={formErrors.title ? "border-destructive" : ""} />
-                </Field>
-                <Field label="Slug *" error={formErrors.slug}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">/services/landing/</span>
-                    <Input value={data.slug} onChange={e => setData("slug", e.target.value)} className="flex-1" />
-                  </div>
                 </Field>
                 <Field label="Card Description (EN)" hint="Shown on the parent service page card">
                   <Input value={data.card_description} onChange={e => setData("card_description", e.target.value)} />

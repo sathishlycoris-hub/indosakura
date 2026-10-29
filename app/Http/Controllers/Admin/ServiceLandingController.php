@@ -20,7 +20,7 @@ class ServiceLandingController extends Controller
             'landings' => ServiceLanding::with('service:id,title,slug')
                 ->orderBy('sort_order')->orderByDesc('id')->get(),
             'services' => Service::select('id', 'title', 'slug')->orderBy('id')->get(),
-            'baseUrl'  => url('/services/landing'),
+            'baseUrl'  => url('/services'),
         ]);
     }
 
@@ -30,7 +30,16 @@ class ServiceLandingController extends Controller
             'service_id'           => 'nullable|exists:services,id',
             'title'                => 'required|string|max:255',
             'title_ja'             => 'nullable|string|max:255',
-            'slug'                 => 'required|string|max:255|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/|unique:service_landings,slug,' . ($ignoreId ?? 'NULL'),
+            'slug'                 => [
+                'required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                'unique:service_landings,slug,' . ($ignoreId ?? 'NULL'),
+                function ($attr, $value, $fail) {
+                    // /services/{slug} is shared with real services, so a landing slug must not clash
+                    if ($value === 'landing' || Service::where('slug', $value)->exists()) {
+                        $fail('This name is already used by a service page. Please choose a different name.');
+                    }
+                },
+            ],
             'card_description'     => 'nullable|string',
             'card_description_ja'  => 'nullable|string',
             'eyebrow'              => 'nullable|string|max:255',

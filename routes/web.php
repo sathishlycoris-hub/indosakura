@@ -286,8 +286,8 @@ Route::get('/solutions/{slug}', [SolutionPageController::class, 'show'])
 
 // ── Service Landing pages (must stay ABOVE /services/{slug} and /services/{a}/{b}) ──
 Route::get('/services/landing', fn () => redirect('/services'));
-Route::get('/services/landing/{slug}', [ServiceLandingPageController::class, 'show'])
-    ->name('services.landing.show');
+// Old link format → new format (landing pages now live at /services/{slug}, served by ServicePageController@show)
+Route::get('/services/landing/{slug}', fn (string $slug) => redirect('/services/' . $slug, 301));
 
 Route::get('/services', [ServicePageController::class, 'index'])
     ->name('services.index');
