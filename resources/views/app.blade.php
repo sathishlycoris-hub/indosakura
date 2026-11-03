@@ -66,6 +66,51 @@
         @endphp
         <link rel="canonical" href="https://{{ config('services.indosakura.com_domain', 'www.indosakura.com') }}{{ $canonicalPath }}">
     @endunless
+    @unless (request()->is('admin*'))
+        <!-- Organization structured data (JSON-LD) -->
+        @verbatim
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "@id": "https://www.indosakura.com/#organization",
+          "name": "Indo-Sakura",
+          "legalName": "Indo-Sakura Software Japan K.K.",
+          "url": "https://www.indosakura.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "@id": "https://www.indosakura.com/#logo",
+            "url": "https://www.indosakura.com/image/logo.png",
+            "contentUrl": "https://www.indosakura.com/image/logo.png",
+            "caption": "Indo-Sakura"
+          },
+          "description": "Indo-Sakura is a global IT services company providing AI-driven development, enterprise applications, infrastructure managed services and custom software development services.",
+          "foundingDate": "2005-12-12",
+          "email": "sales@indosakura.com",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "6F Tokyo Genboku Kaikan, 5-30-13 Toyo",
+            "addressLocality": "Koto-ku",
+            "addressRegion": "Tokyo",
+            "postalCode": "135-0016",
+            "addressCountry": "JP"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+91-96863-91210",
+            "contactType": "sales",
+            "areaServed": "IN",
+            "availableLanguage": ["English", "Japanese"]
+          },
+          "sameAs": [
+            "https://www.facebook.com/indosakurasoftwarejapan",
+            "https://www.linkedin.com/company/indo-sakura-software-japan/",
+            "https://www.instagram.com/indosakurasoftware/"
+          ]
+        }
+        </script>
+        @endverbatim
+    @endunless
     @inertiaHead
 </head>
 
